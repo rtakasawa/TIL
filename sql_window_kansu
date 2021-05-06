@@ -1,0 +1,127 @@
+# sql
+
+## ウィンドウ関数
+### rank
+- 商品分類別に販売単価の安い順にランキング
+- partition by で順位付けをする対象範囲を指定する
+- order by で順位付けを対象を指定する
+```
+shop=# select shohin_mei, shohin_bunrui, hanbai_tanka,
+RANK () over (partition by shohin_bunrui order by hanbai_tanka) as ranking
+from shohin;
+   shohin_mei   | shohin_bunrui | hanbai_tanka | ranking 
+----------------+---------------+--------------+---------
+ フォーク       | キッチン用品  |          500 |       1
+ おろしがね     | キッチン用品  |          880 |       2
+ 包丁           | キッチン用品  |         3000 |       3
+ 圧力鍋         | キッチン用品  |         6800 |       4
+ ボールペン     | 事務用品      |          100 |       1
+ 穴あけパンチ   | 事務用品      |          500 |       2
+ Tシャツ        | 衣服          |         1000 |       1
+ カッターシャツ | 衣服          |         4000 |       2
+(8 rows)
+```
+
+- partition by を除くとテーブル全体でのランキングになる。
+- partition by はテーブルを小分けにする場合に使用する。
+```
+shop=# select shohin_mei, shohin_bunrui, hanbai_tanka,
+RANK () over (order by hanbai_tanka) as ranking
+from shohin;
+   shohin_mei   | shohin_bunrui | hanbai_tanka | ranking 
+----------------+---------------+--------------+---------
+ ボールペン     | 事務用品      |          100 |       1
+ フォーク       | キッチン用品  |          500 |       2
+ 穴あけパンチ   | 事務用品      |          500 |       2
+ おろしがね     | キッチン用品  |          880 |       4
+ Tシャツ        | 衣服          |         1000 |       5
+ 包丁           | キッチン用品  |         3000 |       6
+ カッターシャツ | 衣服          |         4000 |       7
+ 圧力鍋         | キッチン用品  |         6800 |       8
+(8 rows)
+```
+
+#### ウィンドウ関数は、select句のみで使える。なぜなら処理が終わった結果に対して作用するため。
+
+### 集約関数をウィンドウ関数として使う。
+- 累計ができる。（累計：１つずつ集計の対象行が増えていく）
+- 自分より上のレコードが集計対象になる。
+```
+shop=# select shohin_id,shohin_mei, shohin_bunrui, hanbai_tanka,
+sum(hanbai_tanka) over (order by shohin_id) as current_sum
+from shohin;
+ shohin_id |   shohin_mei   | shohin_bunrui | hanbai_tanka | current_sum 
+-----------+----------------+---------------+--------------+-------------
+ 0001      | Tシャツ        | 衣服          |         1000 |        1000  ←1000
+ 0002      | 穴あけパンチ   | 事務用品      |          500 |        1500  ←1000 + 500
+ 0003      | カッターシャツ | 衣服          |         4000 |        5500  ←1000 + 500 + 4000
+ 0004      | 包丁           | キッチン用品  |         3000 |        8500
+ 0005      | 圧力鍋         | キッチン用品  |         6800 |       15300
+ 0006      | フォーク       | キッチン用品  |          500 |       15800
+ 0007      | おろしがね     | キッチン用品  |          880 |       16680
+ 0008      | ボールペン     | 事務用品      |          100 |       16780
+(8 rows)
+```
+
+#### 集計範囲を指定することもできる　⇛　フレーム
+- rouw 行
+- preceding 前の
+- rows 2 preceding　自分より２行前まで　＝　直近の３行
+```
+shop=# select shohin_id,shohin_mei, shohin_bunrui, hanbai_tanka,
+sum(hanbai_tanka) over (order by shohin_id rows 2 preceding) as current_sum
+from shohin;
+ shohin_id |   shohin_mei   | shohin_bunrui | hanbai_tanka | current_sum 
+-----------+----------------+---------------+--------------+-------------
+ 0001      | Tシャツ        | 衣服          |         1000 |        1000
+ 0002      | 穴あけパンチ   | 事務用品      |          500 |        1500
+ 0003      | カッターシャツ | 衣服          |         4000 |        5500
+ 0004      | 包丁           | キッチン用品  |         3000 |        7500
+ 0005      | 圧力鍋         | キッチン用品  |         6800 |       13800
+ 0006      | フォーク       | キッチン用品  |          500 |       10300
+ 0007      | おろしがね     | キッチン用品  |          880 |        8180
+ 0008      | ボールペン     | 事務用品      |          100 |        1480
+(8 rows)
+```
+
+##### 前後の行数の指定
+- 1 following １行前
+- rows between 1 preceding and 1 following 前後１行
+```
+shop=# select shohin_id,shohin_mei, shohin_bunrui, hanbai_tanka,
+sum(hanbai_tanka) over (order by shohin_id rows between 1 preceding and 1 following) as current_sum
+from shohin;
+ shohin_id |   shohin_mei   | shohin_bunrui | hanbai_tanka | current_sum 
+-----------+----------------+---------------+--------------+-------------
+ 0001      | Tシャツ        | 衣服          |         1000 |        1500
+ 0002      | 穴あけパンチ   | 事務用品      |          500 |        5500
+ 0003      | カッターシャツ | 衣服          |         4000 |        7500
+ 0004      | 包丁           | キッチン用品  |         3000 |       13800
+ 0005      | 圧力鍋         | キッチン用品  |         6800 |       10300
+ 0006      | フォーク       | キッチン用品  |          500 |        8180
+ 0007      | おろしがね     | キッチン用品  |          880 |        1480
+ 0008      | ボールペン     | 事務用品      |          100 |         980
+(8 rows)
+```
+
+#### 集約関数をウィンドウ関数として使うと累計になる
+
+### 復習
+- 登録日の昇順　各日付時点の販売単価の合計を求める
+```
+shop=# select torokubi,shohin_mei,
+hanbai_tanka,sum(hanbai_tanka) over(order by torokubi) as sum_hanbai_tanka
+from shohin
+order by torokubi asc;
+  torokubi  |   shohin_mei   | hanbai_tanka | sum_hanbai_tanka 
+------------+----------------+--------------+------------------
+ 2008-04-28 | おろしがね     |          880 |              880
+ 2009-01-15 | 圧力鍋         |         6800 |             7680
+ 2009-09-11 | 穴あけパンチ   |          500 |             8180
+ 2009-09-20 | Tシャツ        |         1000 |            12680
+ 2009-09-20 | 包丁           |         3000 |            12680
+ 2009-09-20 | フォーク       |          500 |            12680
+ 2009-11-11 | ボールペン     |          100 |            12780
+            | カッターシャツ |         4000 |            16780
+(8 rows)
+```
