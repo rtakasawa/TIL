@@ -1,25 +1,5 @@
 # sql
 
-### select文の実行順
-```
-FROM句
-↓
-JOIN句
-↓
-WHERE句
-↓
-GROUP BY句
-↓
-HAVING句
-↓
-SELECT句
-↓
-ORDER BY句
-↓
-LIMIT句
-```
-※引用先：https://qiita.com/k_0120/items/a27ea1fc3b9bddc77fa1
-
 ### group by句の復習
 #### 例１ group byのみ
 ![名称未設定ファイル](https://user-images.githubusercontent.com/60159339/117205152-2fe0fc80-ae2c-11eb-846e-2c244c3b7e00.png)
@@ -88,4 +68,7 @@ order by shohin_bunrui;
 
 ## 復習
 ![名称未設定ファイル-ページ1](https://user-images.githubusercontent.com/60159339/117723596-86c84680-b21d-11eb-86ea-7f6c87eddf76.png)
+
+### メモ
+- havingでは別名は使えない(実行順でselectより前にhavingが実行されるため)
 
