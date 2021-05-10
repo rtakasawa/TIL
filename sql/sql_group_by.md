@@ -24,7 +24,7 @@ LIMIT句
 #### 例１ group byのみ
 ![名称未設定ファイル](https://user-images.githubusercontent.com/60159339/117205152-2fe0fc80-ae2c-11eb-846e-2c244c3b7e00.png)
 
-#### 例２ rollup 
+#### 例２ rollup
 ![名称未設定ファイル-ページ1のコピー](https://user-images.githubusercontent.com/60159339/117207145-9535ed00-ae2e-11eb-9f04-da85e3b9de38.png)
 
 #### 例3 rollup（複数指定）
@@ -42,7 +42,7 @@ select shohin_bunrui,torokubi,sum(hanbai_tanka)
 from shohin
 group by cube(shohin_bunrui,torokubi)
 order by shohin_bunrui;
- shohin_bunrui |  torokubi  |  sum  
+ shohin_bunrui |  torokubi  |  sum
 ---------------+------------+-------
  キッチン用品  | 2008-04-28 |   880
  キッチン用品  |            | 11180
@@ -72,7 +72,7 @@ shop=# select shohin_bunrui,torokubi,sum(hanbai_tanka)
 from shohin
 group by grouping sets(shohin_bunrui,torokubi)
 order by shohin_bunrui;
- shohin_bunrui |  torokubi  |  sum  
+ shohin_bunrui |  torokubi  |  sum
 ---------------+------------+-------
  キッチン用品  |            | 11180
  事務用品      |            |   600
@@ -85,3 +85,7 @@ order by shohin_bunrui;
                | 2009-11-11 |   100
 (9 rows)
 ```
+
+## 復習
+![名称未設定ファイル-ページ1](https://user-images.githubusercontent.com/60159339/117723596-86c84680-b21d-11eb-86ea-7f6c87eddf76.png)
+
